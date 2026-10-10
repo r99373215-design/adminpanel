@@ -258,7 +258,7 @@
     const SUPABASE_KEY = 'sb_publishable_cEEDSjuguL4wwAyNAhfXwQ_C40q5_fx';
     // Адрес, где лежит магазин (например 'https://albertshop.netlify.app').
     // Нужен, чтобы старые фото-имена (palm.jpg) показывались и в админке. Можно оставить пустым.
-    const SHOP_URL = '';
+    const SHOP_URL = 'https://r99373215-design.github.io/alibert1/';
     const BUCKET = 'photos';
 
     const CATEGORIES = ['Футболки','Худи/Зипки','Куртки/Ветровки','Штаны/Джинсы','Шорты','Обувь','Головные уборы','Аксессуары','Другое'];
@@ -386,6 +386,7 @@
           <div class="admin-prod-tags"><span class="atag atag-cat">${esc(p.category)}</span>${p.brand ? `<span class="atag atag-size">${esc(p.brand)}</span>` : ''}${p.condition ? `<span class="atag atag-size">${esc(p.condition)}</span>` : ''}<span class="atag atag-price">${fmt(p.price)} ₽</span>${sold ? '<span class="atag atag-sold">Продано</span>' : ''}${sizes}</div>
         </div><div class="admin-prod-btns">
           <button class="btn-a-edit" data-act="editProduct" data-id="${p.id}">✏️ Изменить</button>
+          <button class="btn-a-edit" data-act="copyLink" data-id="${p.id}">🔗 Ссылка</button>
           <button class="btn-a-del" data-act="delProduct" data-id="${p.id}">🗑️ Удалить</button>
         </div></div>`;
       }).join('');
@@ -588,6 +589,23 @@
       BRANDS.splice(i, 1); renderBrands(); await saveBrands();
     }
 
+    // ══════════ ССЫЛКА НА ТОВАР ══════════
+    function productLink(id) { return SHOP_URL.replace(/\/+$/, '') + '/#p' + id; }
+    function copyLink(id) {
+      const link = productLink(id);
+      const fallback = () => {
+        const ta = document.createElement('textarea');
+        ta.value = link; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); toast('Ссылка скопирована!', true); }
+        catch (err) { toast(link); }
+        document.body.removeChild(ta);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(() => toast('Ссылка скопирована!', true)).catch(fallback);
+      } else { fallback(); }
+    }
+
     // ══════════ ПОДТВЕРЖДЕНИЕ ══════════
     function askConfirm(text, sub, cb) {
       $('confirmText').innerText = text; $('confirmSub').innerText = sub; confirmCb = cb;
@@ -613,6 +631,7 @@
         case 'addSize': addSize(); break;
         case 'rmSize': curSizes = curSizes.filter(x => x !== b.dataset.size); renderSizes(); break;
         case 'importLegacy': importLegacy(); break;
+        case 'copyLink': copyLink(Number(id)); break;
         case 'delOrder': askConfirm('Удалить заказ?', id, () => deleteOrder(id)); break;
         case 'toggleBan': toggleBan(id); break;
         case 'addBrand': addBrand(); break;
